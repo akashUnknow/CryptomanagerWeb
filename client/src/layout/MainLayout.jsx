@@ -11,7 +11,7 @@ export default function MainLayout() {
       </nav>
 
       {/* Page Content */}
-      <main className="p-6">
+      <main className="">
         <Outlet />
       </main>
     </div>
