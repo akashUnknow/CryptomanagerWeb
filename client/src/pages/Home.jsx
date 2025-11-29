@@ -1,10 +1,14 @@
-import { Button } from "@/components/ui/button"
-function Home() {
-  return (
-    <>
-      <h1 className="text-2xl font-bold">Welcome to CryptoManager</h1>
-      
-    </>)
-}
+import { useState } from "react";
+import Sidebar from "@/components/Sidebar";
+import CryptoContent from "@/components/CryptoContent";
 
-export default Home
+export default function Home() {
+  const [active, setActive] = useState("DES");
+
+  return (
+    <div className="flex h-screen bg-gray-100">
+      <Sidebar active={active} onSelect={setActive} />
+      <CryptoContent active={active} />
+    </div>
+  );
+}
