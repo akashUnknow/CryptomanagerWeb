@@ -46,19 +46,30 @@ export default function useCryptoLogic() {
     };
     console.log("Payload:", payload);
 
-    try {
-      RequestSchema.parse(payload);
-    } catch (err) {
-      if (err.errors) setError(err.errors.map(e => e.message).join(" | "));
-      return;
-    }
+    // try {
+    //   RequestSchema.parse(payload);
+    // } catch (err) {
+    //   if (err.errors) setError(err.errors.map(e => e.message).join(" | "));
+    //   return;
+    // }
+    
 
     setLoading(true);
     try {
-      const url =
-        algorithm === "AES"
-          ? "http://localhost:8080/api/aes/encrypt"
-          : "http://localhost:8080/api/encrypt";
+      let url;
+      if (algorithm === "DES" || algorithm === "DESede" || algorithm === "DESX") {
+        url = "http://localhost:8080/api/encrypt";
+        console.log("Using DES endpoint");
+
+      } else if (algorithm === "AES") {
+        url = "http://localhost:8080/api/aes/encrypt";
+        console.log("Using AES endpoint");
+      } else {
+        setError("Unsupported algorithm");
+        setLoading(false);
+        return;
+      }
+      console.log("Sending request to:", url);
 
       const res = await fetch(url, {
         method: "POST",
@@ -67,6 +78,7 @@ export default function useCryptoLogic() {
       });
 
       const json = await res.json();
+      console.log("Response:", json);
       if (!res.ok) setError(json.error || JSON.stringify(json));
       else setResult(json.cipherText);
     } catch (e) {

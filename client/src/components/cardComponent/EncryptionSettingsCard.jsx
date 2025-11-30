@@ -18,9 +18,62 @@ export default function EncryptionSettingsCard({
   padding,
   setPadding
 }) {
+
+  // AES dynamic label
+  const getAESKeyLabel = () => {
+    if (!key1) return "AES Key (hex)";
+    const len = key1.length;
+
+    if (len === 32) return "AES-128 (32 hex chars)";
+    if (len === 48) return "AES-192 (48 hex chars)";
+    if (len === 64) return "AES-256 (64 hex chars)";
+
+    return "AES Key (valid: 32 / 48 / 64 hex chars)";
+  };
+
+  // AES modes
+  const aesModes = [
+    { value: 'ECB', label: 'ECB' },
+    { value: 'CBC', label: 'CBC' },
+    { value: 'CFB', label: 'CFB' },
+    { value: 'OFB', label: 'OFB' },
+    { value: 'CCM', label: 'CCM (AEAD)' },
+    { value: 'GCM', label: 'GCM (AEAD)' }
+  ];
+
+  // DES modes (original)
+  const desModes = [
+    { value: 'ECB', label: 'ECB' },
+    { value: 'CBC', label: 'CBC' },
+    { value: 'CFB', label: 'CFB' },
+    { value: 'OFB', label: 'OFB' }
+  ];
+
+  // select correct modes based on algorithm
+  let modeOptions = [];
+  if (algorithm === "AES") {
+    modeOptions = aesModes;
+  } else {
+    modeOptions = desModes;
+  }
+  let algorithmOptions = [];
+  if (algorithm === "AES") {
+    algorithmOptions = [
+      { value: 'AES', label: 'AES (128/192/256-bit)' }
+    ];
+  } else if (algorithm === "DES") {
+    algorithmOptions = [
+      { value: 'DES', label: 'DES (56-bit)' },
+      { value: 'DESede', label: '3DES (112/168-bit)' },
+      { value: 'DESX', label: 'DESX (Whitened)' }
+    ];
+  } else {
+    {/* default to all options */ }
+  }
+
   return (
     <Card className="p-6">
-      <CardHeader 
+      <CardHeader
         icon={Settings}
         title="Encryption Settings"
         description="Configure encryption parameters"
@@ -28,76 +81,88 @@ export default function EncryptionSettingsCard({
         iconColor="text-purple-600"
       />
 
+      {/* Algorithm + Mode */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <Select 
-          label="Algorithm" 
-          options={[
-            { value: 'DES', label: 'DES (56-bit)' },
-            { value: 'DESede', label: '3DES (112/168-bit)' },
-            { value: 'DESX', label: 'DESX (whitened)' }
-          ]} 
-          value={algorithm} 
-          onChange={(e) => setAlgorithm(e.target.value)} 
+
+        {/* Algorithm Dropdown */}
+        <Select
+          label="Algorithm"
+          options={algorithmOptions}
+          value={algorithm}
+          onChange={(e) => setAlgorithm(e.target.value)}
         />
-        <Select 
-          label="Mode" 
-          options={[
-            { value: 'ECB', label: 'ECB' },
-            { value: 'CBC', label: 'CBC' },
-            { value: 'CFB', label: 'CFB' },
-            { value: 'OFB', label: 'OFB' }
-          ]} 
-          value={mode} 
-          onChange={(e) => setMode(e.target.value)} 
+
+        {/* Dynamic Mode */}
+        <Select
+          label="Mode"
+          options={modeOptions}
+          value={mode}
+          onChange={(e) => setMode(e.target.value)}
         />
       </div>
 
+      {/* Dynamic Key Fields */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-        <Input 
-          icon={Key} 
-          label={algorithm === 'DES' ? 'Key (16 hex chars)' : 'Key 1'} 
-          value={key1} 
-          onChange={(e) => setKey1(e.target.value)} 
-          placeholder="Key 1 (hex)" 
+
+        {/* Key 1 */}
+        <Input
+          icon={Key}
+          label={
+            algorithm === 'AES'
+              ? getAESKeyLabel()
+              : algorithm === 'DES'
+                ? 'DES Key (16 hex chars)'
+                : 'Key 1'
+          }
+          value={key1}
+          onChange={(e) => setKey1(e.target.value)}
+          placeholder="Hex key"
         />
-        <Input 
-          icon={Key} 
-          label={algorithm === 'DES' ? '' : 'Key 2'} 
-          value={key2} 
-          onChange={(e) => setKey2(e.target.value)} 
-          placeholder="Key 2 (hex)" 
-          disabled={algorithm === 'DES'}
+
+        {/* Key 2 */}
+        <Input
+          icon={Key}
+          label={algorithm === 'AES' ? '' : 'Key 2'}
+          value={key2}
+          onChange={(e) => setKey2(e.target.value)}
+          placeholder="Key 2 (hex)"
+          disabled={algorithm === 'DES' || algorithm === "AES"}
         />
-        <Input 
-          icon={Key} 
-          label={algorithm === 'DES' ? '' : 'Key 3 (optional)'} 
-          value={key3} 
-          onChange={(e) => setKey3(e.target.value)} 
-          placeholder="Key 3 (hex)" 
-          disabled={algorithm === 'DES'}
+
+        {/* Key 3 */}
+        <Input
+          icon={Key}
+          label={algorithm === 'AES' ? '' : 'Key 3 (optional)'}
+          value={key3}
+          onChange={(e) => setKey3(e.target.value)}
+          placeholder="Key 3 (hex)"
+          disabled={algorithm === 'DES' || algorithm === "AES"}
         />
       </div>
 
-      <Input 
-        icon={Hash} 
-        label="Initial Vector (IV - hex)" 
-        placeholder="IV (16 hex chars)" 
-        value={iv} 
-        onChange={(e) => setIv(e.target.value)} 
+      {/* IV */}
+      <Input
+        icon={Hash}
+        label={mode === "GCM" || mode === "CCM" ? "Nonce (IV - hex)" : "IV (hex)"}
+        placeholder="IV / Nonce"
+        value={iv}
+        onChange={(e) => setIv(e.target.value)}
         disabled={mode === 'ECB'}
       />
 
+      {/* Padding */}
       <div className="mt-4">
-        <Select 
-          label="Padding" 
+        <Select
+          label="Padding"
           options={[
             { value: 'NoPadding', label: 'NoPadding' },
             { value: 'PKCS5', label: 'PKCS5' },
             { value: 'ISO9797_M1', label: 'ISO9797_M1' },
             { value: 'ISO9797_M2', label: 'ISO9797_M2' }
-          ]} 
-          value={padding} 
-          onChange={(e) => setPadding(e.target.value)} 
+          ]}
+          value={padding}
+          onChange={(e) => setPadding(e.target.value)}
+          disabled={mode === "GCM" || mode === "CCM"}
         />
       </div>
     </Card>
