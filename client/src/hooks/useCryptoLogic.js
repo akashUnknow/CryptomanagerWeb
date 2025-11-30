@@ -29,6 +29,7 @@ export default function useCryptoLogic() {
     if (algorithm === "DESX") return key1 + key2 + key3;
     return key1; // AES uses only key1
   };
+
   const loadSampleBlock = () => {
     if (algorithm === "DES" || algorithm === "DESede" || algorithm === "DESX") {
       setData("1122334455667788");
@@ -41,6 +42,7 @@ export default function useCryptoLogic() {
   };
 
   const handleEncrypt = async () => {
+    // Clear previous errors and result
     setError(null);
     setResult("");
 
@@ -54,15 +56,28 @@ export default function useCryptoLogic() {
       inputType,
       tagLength,
     };
-    console.log("Payload:", payload);
+    
+    //  ("Payload:", payload);
 
+    // Validate with Zod
     try {
       RequestSchema.parse(payload);
+      //  ("✅ Validation passed");
     } catch (err) {
-      if (err.errors) setError(err.errors.map(e => e.message).join(" | "));
-      return;
+      console.error("❌ Validation failed:", err);
+      
+      // Format Zod errors properly
+      if (err.errors && Array.isArray(err.errors)) {
+        const errorMessages = err.errors.map(e => e.message).join(" • ");
+        //  ("Setting error:", errorMessages);
+        setError(errorMessages);
+      } else {
+         setError(err.message);
+      }
+      return; // Stop execution if validation fails
     }
 
+    // If validation passes, proceed with API call
     setLoading(true);
     try {
       let url;
@@ -72,16 +87,15 @@ export default function useCryptoLogic() {
         algorithm === "DESX"
       ) {
         url = "http://localhost:8080/api/encrypt";
-        // console.log("Using DES endpoint");
       } else if (algorithm === "AES") {
         url = "http://localhost:8080/api/aes/encrypt";
-        // console.log("Using AES endpoint");
       } else {
         setError("Unsupported algorithm");
         setLoading(false);
         return;
       }
-      // console.log("Sending request to:", url);
+
+      //  ("Sending request to:", url);
 
       const res = await fetch(url, {
         method: "POST",
@@ -90,11 +104,16 @@ export default function useCryptoLogic() {
       });
 
       const json = await res.json();
-      // console.log("Response:", json);
-      if (!res.ok) setError(json.error || JSON.stringify(json));
-      else setResult(json.cipherText);
+      //  ("Response:", json);
+      
+      if (!res.ok) {
+        setError(json.error || JSON.stringify(json));
+      } else {
+        setResult(json.cipherText);
+      }
     } catch (e) {
-      setError(e.message);
+      console.error("Network error:", e);
+      setError("Network error: " + e.message);
     } finally {
       setLoading(false);
     }
