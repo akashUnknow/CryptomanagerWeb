@@ -63,18 +63,18 @@ export const RequestSchema = z.object({
 
     // ECB → No IV, must have padding
     if (val.mode === "ECB") {
-      if (val.iv) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "IV is NOT allowed in ECB mode"
-        });
-      }
-      if (val.padding === "NoPadding") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "ECB mode requires padding"
-        });
-      }
+      // if (val.iv) {
+      //   ctx.addIssue({
+      //     code: z.ZodIssueCode.custom,
+      //     message: "IV is NOT allowed in ECB mode"
+      //   });
+      // }
+      // if (val.padding === "NoPadding") {
+      //   ctx.addIssue({
+      //     code: z.ZodIssueCode.custom,
+      //     message: "ECB mode requires padding"
+      //   });
+      // }
     }
 
     // Modes that MUST use NoPadding

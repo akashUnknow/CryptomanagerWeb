@@ -52,12 +52,6 @@ export default function InputConfigCard({
             >
               Use sample block
             </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => fillSample('3des-cbc')}
-            >
-              Load 3DES-CBC
-            </Button>
           </div>
         </div>
 
